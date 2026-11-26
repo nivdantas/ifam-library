@@ -34,21 +34,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".DetalhesLivrosBibliotecario"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".EditarDetalhesLivros"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".CatalogoPrimeiraTela.java"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -84,13 +70,6 @@
         </activity>
         <activity
             android:name=".SolicitacoesActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".MenuBibliotecarioActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
