@@ -1,5 +1,6 @@
 package com.example.projetodisp.modelo;
 
+import com.google.android.gms.tasks.Task;
 import com.example.projetodisp.config.ConfiguracaoFirebase;
 import com.google.firebase.database.DatabaseReference;
 
@@ -9,7 +10,6 @@ public class Usuarios implements Serializable {
     private String id;
     private String nome;
     private String usuario;
-    private String senha;
     private String email;
     private Boolean bibliotecario;
     private String livros;
@@ -81,14 +81,6 @@ public class Usuarios implements Serializable {
         this.email = email;
     }
 
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
     public Boolean getBibliotecario() {
         return bibliotecario;
     }
@@ -98,8 +90,8 @@ public class Usuarios implements Serializable {
     }
 
 
-    public void salvarDados() {
+    public Task<Void> salvarDados() {
         DatabaseReference firebase = ConfiguracaoFirebase.getFirebaseDatabase();
-        firebase.child("Usuarios").child(this.id).child("Informações Pessoais").setValue(this);
+        return firebase.child("Usuarios").child(this.id).child("Informações Pessoais").setValue(this);
     }
 }

@@ -14,4 +14,6 @@
     <string name="solicita_es">SOLICITAÇÕES</string>
     <string name="cat_logo">Catálogo</string>
     <string name="catalogo">Catalogo</string>
+    <string name="erro_salvar_perfil">A conta foi criada, mas o perfil não foi salvo. Entre em contato com a biblioteca.</string>
+    <string name="erro_carregar_perfil">Não foi possível carregar o perfil. Tente novamente ou entre em contato com a biblioteca.</string>
 </resources>

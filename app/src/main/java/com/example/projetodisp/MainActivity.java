@@ -8,14 +8,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.content.Intent;
 import android.widget.Toast;
 
-//import com.example.projetodisp.modelo.Usuario;
-import com.example.projetodisp.modelo.Usuarios;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
@@ -33,11 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText et_email;
     private EditText et_senha;
-    private CheckBox cb_bibliotecario;
     private Button btn_login;
     private TextView tv_cadastrar;
     private FirebaseAuth mAuth;
-    private Usuarios u;
 
     private DatabaseReference referencia = FirebaseDatabase.getInstance().getReference();
 
@@ -58,8 +53,9 @@ public class MainActivity extends AppCompatActivity {
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                receberDados();
-                if (u.getEmail().isEmpty() || u.getSenha().isEmpty()) {
+                String email = et_email.getText().toString();
+                String senha = et_senha.getText().toString();
+                if (email.isEmpty() || senha.isEmpty()) {
                     Snackbar snackbar = Snackbar.make(v, mensagens[0], Snackbar.LENGTH_LONG);
                     snackbar.setBackgroundTint(Color.WHITE);
                     snackbar.setTextColor(Color.BLACK);
@@ -67,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 } else {
-                    logar();
+                    logar(email, senha);
                 }
 
             }
@@ -95,15 +91,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void logar() {
-        mAuth.signInWithEmailAndPassword(u.getEmail(), u.getSenha())
+    private void logar(String email, String senha) {
+        mAuth.signInWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            verfificarBibliotecario();
+                            verificarBibliotecario(task.getResult().getUser());
                         } else {
                             // If sign in fails, display a message to the user.
                             Toast.makeText(MainActivity.this, "Autenticação falhou.",
@@ -113,21 +108,19 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void receberDados() {
-        u = new Usuarios();
-        u.setEmail(et_email.getText().toString());
-        u.setSenha(et_senha.getText().toString());
-    }
-    private void verfificarBibliotecario() {
-        FirebaseUser user = mAuth.getCurrentUser();
+    private void verificarBibliotecario(FirebaseUser user) {
         DatabaseReference usuarios = referencia.child("Usuarios").child(user.getUid()).child("Informações Pessoais");
 
         usuarios.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                boolean nome = dataSnapshot.child("bibliotecario").getValue(boolean.class);
-                if (nome) {
-//                    Toast.makeText(MainActivity.this,"verdadeiro", Toast.LENGTH_LONG).show();
+                if (!dataSnapshot.exists()) {
+                    mAuth.signOut();
+                    Toast.makeText(MainActivity.this, R.string.erro_carregar_perfil, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Boolean bibliotecario = dataSnapshot.child("bibliotecario").getValue(Boolean.class);
+                if (Boolean.TRUE.equals(bibliotecario)) {
                     startActivity(new Intent(MainActivity.this, CatalogoBibliotecario.class));
                 } else {
                     startActivity(new Intent(MainActivity.this, CatalogoActivity.class));
@@ -136,7 +129,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                mAuth.signOut();
+                Toast.makeText(MainActivity.this, R.string.erro_carregar_perfil, Toast.LENGTH_LONG).show();
             }
         });
 

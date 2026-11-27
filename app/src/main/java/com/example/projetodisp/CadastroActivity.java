@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -30,10 +29,8 @@ public class CadastroActivity extends AppCompatActivity {
     private EditText et_usuarioCadastro;
     private EditText et_senhaCadastro;
     private EditText et_emailCadastro;
-    private CheckBox cb_bibliotecarioCadastro;
     private Button btn_cadastrar;
     private FirebaseAuth mAuth;
-    private Usuarios u;
     String[] mensagens = {"Preencha todos os campos", "Cadastro realizado com sucesso"};
 
 
@@ -60,7 +57,6 @@ public class CadastroActivity extends AppCompatActivity {
         et_senhaCadastro = findViewById(R.id.et_senhaCadastro);
         et_emailCadastro = findViewById(R.id.et_emailCadastro);
         btn_cadastrar = findViewById(R.id.btn_cadastrar);
-        cb_bibliotecarioCadastro = findViewById(R.id.cb_bibliotecarioCadastro);
         mAuth = FirebaseAuth.getInstance();
 
         btn_cadastrar.setOnClickListener(new View.OnClickListener() {
@@ -78,38 +74,40 @@ public class CadastroActivity extends AppCompatActivity {
                     snackbar.setTextColor(Color.BLACK);
                     snackbar.show();
                 } else {
-                    criarLogin(v);
+                    criarLogin(nome, usuario, email, senha);
                 }
             }
         });
     }
 
-    private void criarLogin(View v) {
-        u = new Usuarios();
-        u.setNome(et_nomeCadastro.getText().toString());
-        u.setUsuario(et_usuarioCadastro.getText().toString());
-        u.setSenha(et_senhaCadastro.getText().toString());
-        u.setEmail(et_emailCadastro.getText().toString());
-        if (cb_bibliotecarioCadastro.isChecked()) {
-            u.setBibliotecario(true);
-        } else {
-            u.setBibliotecario(false);
-        }
+    private void criarLogin(String nome, String usuario, String email, String senha) {
+        Usuarios perfil = new Usuarios();
+        perfil.setNome(nome);
+        perfil.setUsuario(usuario);
+        perfil.setEmail(email);
+        perfil.setBibliotecario(false);
 
-        mAuth.createUserWithEmailAndPassword(u.getEmail(), u.getSenha())
+        btn_cadastrar.setEnabled(false);
+        mAuth.createUserWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(CadastroActivity.this, "Cadastro realizado com sucesso", Toast.LENGTH_SHORT).show();
-
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            u.setId(user.getUid());
-                            u.salvarDados();
-                            startActivity(new Intent(CadastroActivity.this, MainActivity.class));
-
+                            FirebaseUser user = task.getResult().getUser();
+                            perfil.setId(user.getUid());
+                            perfil.salvarDados().addOnCompleteListener(CadastroActivity.this, perfilTask -> {
+                                btn_cadastrar.setEnabled(true);
+                                if (perfilTask.isSuccessful()) {
+                                    Toast.makeText(CadastroActivity.this, mensagens[1], Toast.LENGTH_SHORT).show();
+                                    finish();
+                                } else {
+                                    mAuth.signOut();
+                                    Toast.makeText(CadastroActivity.this, R.string.erro_salvar_perfil,
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            });
                         } else {
-//                            Toast.makeText(CadastroActivity.this, "Error" + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            btn_cadastrar.setEnabled(true);
                             String erro;
                             try {
                                 throw task.getException();
